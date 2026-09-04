@@ -1,5 +1,5 @@
 -- ==================================================
--- AUTO CURSED CAPTAIN (មាន No Clip ពេល Tween)
+-- AUTO DARKBEARD (FIXED - Toggle Debounce)
 -- ==================================================
 
 local Players = game:GetService("Players")
@@ -11,25 +11,22 @@ local workspace = game:GetService("Workspace")
 local Player = Players.LocalPlayer
 
 -- ==================================================
--- CURSED CAPTAIN POSITION
+-- DARKBEARD POSITION
 -- ==================================================
-local CURSED_CAPTAIN_POSITION = Vector3.new(-6499, 90, -124)
+local DARKBEARD_POSITION = Vector3.new(4267, 35, -3849)
+
+-- ==================================================
+-- RESPAWN STATE
+-- ==================================================
+local hasRespawned = false
+local characterAddedConnection = nil
+local respawnCount = 0
+local maxRespawnCount = 2
 
 -- ==================================================
 -- TOGGLE DEBOUNCE
 -- ==================================================
 local isToggling = false
-
--- ==================================================
--- BYPASS TELEPORT STATE
--- ==================================================
-local hasBypassTeleported = false
-
--- ==================================================
--- TOGGLE PROTECTION
--- ==================================================
-local isFeatureRunning = false
-local toggleLock = false
 
 -- ==================================================
 -- TWEEN TELEPORT VARIABLES
@@ -48,64 +45,6 @@ local isTweeningToPosition = false
 local bossFound = false
 local isAtPosition = false
 local isFollowingBoss = false
-
--- ==================================================
--- NO CLIP FUNCTIONS
--- ==================================================
-local function enableNoClip()
-    local character = Player.Character
-    if character then
-        for _, part in ipairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end
-
-local function disableNoClip()
-    local character = Player.Character
-    if character then
-        for _, part in ipairs(character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-            end
-        end
-    end
-end
-
--- ==================================================
--- BYPASS TELEPORT FUNCTION
--- ==================================================
-local function bypassTeleport(targetPos)
-    local character = Player.Character
-    if not character then return false end
-    
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    
-    local humanoid = character:FindFirstChild("Humanoid")
-    if humanoid and humanoid.Health <= 0 then return false end
-    
-    -- Enable No Clip before teleport
-    enableNoClip()
-    
-    root.CFrame = CFrame.new(targetPos)
-    hasBypassTeleported = true
-    
-    -- Disable No Clip after teleport
-    task.wait(0.1)
-    disableNoClip()
-    
-    return true
-end
-
--- ==================================================
--- RESET BYPASS STATE (ពេល Character Respawn)
--- ==================================================
-local function resetBypassState()
-    hasBypassTeleported = false
-end
 
 -- ==================================================
 -- TWEEN TELEPORT FUNCTIONS
@@ -161,6 +100,87 @@ local function stopTweenToPosition()
     end
 end
 
+local function tweenToPosition(targetPos, speed)
+    local character = Player.Character
+    if not character then return false end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid and humanoid.Health <= 0 then return false end
+    
+    if currentTween then
+        currentTween:Cancel()
+        currentTween = nil
+    end
+    if followConnection then
+        followConnection:Disconnect()
+        followConnection = nil
+    end
+    isTweening = false
+    isTweeningToPosition = true
+    
+    if lockConnection then
+        lockConnection:Disconnect()
+        lockConnection = nil
+    end
+    isLocked = false
+    
+    local distance = (targetPos - root.Position).Magnitude
+    if distance < 3 then 
+        isTweeningToPosition = false
+        if bodyVelocity then
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+        end
+        return true 
+    end
+    
+    local duration = math.max(0.5, distance / speed)
+    
+    local direction = (targetPos - root.Position).Unit
+    if not bodyVelocity then
+        bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(1, 1, 1) * 10000
+        bodyVelocity.Parent = root
+    end
+    bodyVelocity.Velocity = direction * speed
+    
+    if not bodyGyro then
+        bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.MaxTorque = Vector3.new(1, 1, 1) * 10000
+        bodyGyro.Parent = root
+    end
+    bodyGyro.CFrame = CFrame.lookAt(root.Position, targetPos)
+    
+    local tweenInfo = TweenInfo.new(
+        duration,
+        Enum.EasingStyle.Linear,
+        Enum.EasingDirection.Out
+    )
+    
+    currentTween = TweenService:Create(root, tweenInfo, {
+        CFrame = CFrame.new(targetPos)
+    })
+    
+    isTweening = true
+    
+    currentTween:Play()
+    currentTween.Completed:Wait()
+    
+    if bodyVelocity then
+        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    end
+    
+    if not isTweening then
+        isTweeningToPosition = false
+        return false
+    end
+    
+    isTweeningToPosition = false
+    return true
+end
+
 local function tweenToBoss(bossPos, speed)
     local character = Player.Character
     if not character then return false end
@@ -197,7 +217,7 @@ local function tweenToBoss(bossPos, speed)
         return true 
     end
     
-    local duration = math.max(0.10, distance / speed)
+    local duration = math.max(0.5, distance / speed)
     
     local direction = (targetPos - root.Position).Unit
     if not bodyVelocity then
@@ -213,9 +233,6 @@ local function tweenToBoss(bossPos, speed)
         bodyGyro.Parent = root
     end
     bodyGyro.CFrame = CFrame.lookAt(root.Position, targetPos)
-    
-    -- Enable No Clip before tween
-    enableNoClip()
     
     local tweenInfo = TweenInfo.new(
         duration,
@@ -236,10 +253,6 @@ local function tweenToBoss(bossPos, speed)
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     end
     
-    -- Disable No Clip after tween complete
-    task.wait(0.1)
-    disableNoClip()
-    
     if not isTweening then
         return false
     end
@@ -248,12 +261,152 @@ local function tweenToBoss(bossPos, speed)
 end
 
 -- ==================================================
--- FIND CURSED CAPTAIN BOSS
+-- RESPAWN FUNCTIONS (Invoke 3 ដង)
 -- ==================================================
-local function findCursedCaptain()
+
+local function setSpawnPoint(location)
+    local Event = ReplicatedStorage:FindFirstChild("Remotes")
+    if Event then
+        local CommF = Event:FindFirstChild("CommF_")
+        if CommF then
+            pcall(function()
+                CommF:InvokeServer("SetLastSpawnPoint", location)
+            end)
+        end
+    end
+end
+
+local function setSpawnPointMultiple(location)
+    for i = 1, 3 do
+        setSpawnPoint(location)
+        task.wait(0.01)
+    end
+end
+
+local function respawnPlayer(location)
+    local character = Player.Character
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            task.wait(0.10)
+            humanoid.Health = 0
+            task.wait(0.01)
+            setSpawnPointMultiple(location)
+            return true
+        end
+    end
+    return false
+end
+
+local function respawnToBar()
+    respawnPlayer("Bar")
+end
+
+local function respawnToIceCastle()
+    respawnPlayer("IceCastle")
+end
+
+-- ==================================================
+-- CHECK DISTANCE AFTER RESPAWN
+-- ==================================================
+local function checkDistanceAfterRespawn()
+    task.wait(10)
+    
+    local character = Player.Character
+    if not character then
+        return false
+    end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then
+        return false
+    end
+    
+    local distance = (DARKBEARD_POSITION - root.Position).Magnitude
+    
+    if distance > 5000 and respawnCount < maxRespawnCount then
+        return true
+    end
+    
+    return false
+end
+
+-- ==================================================
+-- AUTO RESPAWN CHECK
+-- ==================================================
+local function checkAndRespawn()
+    if respawnCount >= maxRespawnCount then
+        return false
+    end
+    
+    local bossInStorage = ReplicatedStorage:FindFirstChild("Darkbeard")
+    if not bossInStorage then
+        return false
+    end
+    
+    local character = Player.Character
+    if not character then
+        return false
+    end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then
+        return false
+    end
+    
+    local distance = (DARKBEARD_POSITION - root.Position).Magnitude
+    
+    if distance > 5000 then
+        respawnToBar()
+        respawnCount = respawnCount + 1
+        
+        task.wait(0.5)
+        
+        local function onCharacterAdded()
+            if hasRespawned then
+                return
+            end
+            
+            task.wait(0.5)
+            hasRespawned = true
+            
+            respawnToIceCastle()
+            respawnCount = respawnCount + 1
+            
+            task.spawn(function()
+                if checkDistanceAfterRespawn() then
+                    if respawnCount < maxRespawnCount then
+                        hasRespawned = false
+                        checkAndRespawn()
+                    end
+                end
+            end)
+            
+            if characterAddedConnection then
+                characterAddedConnection:Disconnect()
+                characterAddedConnection = nil
+            end
+        end
+        
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
+        end
+        characterAddedConnection = Player.CharacterAdded:Connect(onCharacterAdded)
+        
+        return true
+    end
+    
+    return false
+end
+
+-- ==================================================
+-- FIND DARKBEARD BOSS
+-- ==================================================
+local function findDarkbeard()
     local enemies = workspace:FindFirstChild("Enemies")
     if enemies then
-        local boss = enemies:FindFirstChild("Cursed Captain")
+        local boss = enemies:FindFirstChild("Darkbeard")
         if boss and boss:FindFirstChild("Humanoid") then
             local humanoid = boss.Humanoid
             if humanoid.Health > 0 then
@@ -264,7 +417,7 @@ local function findCursedCaptain()
         end
     end
     
-    local stored = ReplicatedStorage:FindFirstChild("Cursed Captain")
+    local stored = ReplicatedStorage:FindFirstChild("Darkbeard")
     if stored then
         return stored, "replicatedstorage"
     end
@@ -273,12 +426,10 @@ local function findCursedCaptain()
 end
 
 -- ==================================================
--- AUTO CURSED CAPTAIN LOOP
+-- AUTO DARKBEARD LOOP
 -- ==================================================
-local function cursedCaptainLoop()
-    isFeatureRunning = true
-    
-    while _G.YOKUDO_AutoCursedCaptainEnabled do
+local function darkBeardLoop()
+    while _G.YOKUDO_AutoDarkBeardEnabled do
         local character = Player.Character
         if not character then
             task.wait(0.01)
@@ -291,7 +442,9 @@ local function cursedCaptainLoop()
             continue
         end
         
-        local boss, location = findCursedCaptain()
+        checkAndRespawn()
+        
+        local boss, location = findDarkbeard()
         
         if not boss then
             if location == "dead" then
@@ -356,7 +509,7 @@ local function cursedCaptainLoop()
                 end
                 
                 followConnection = RunService.Heartbeat:Connect(function()
-                    if not _G.YOKUDO_AutoCursedCaptainEnabled then
+                    if not _G.YOKUDO_AutoDarkBeardEnabled then
                         if followConnection then
                             followConnection:Disconnect()
                             followConnection = nil
@@ -409,71 +562,77 @@ local function cursedCaptainLoop()
             isAtPosition = false
             isFollowingBoss = false
             
-            if not hasBypassTeleported then
-                bypassTeleport(CURSED_CAPTAIN_POSITION)
+            local distToPos = (DARKBEARD_POSITION - root.Position).Magnitude
+            
+            if distToPos > 5 and not isTweeningToPosition then
+                tweenToPosition(DARKBEARD_POSITION, 250)
+                task.wait(0.01)
+            else
+                isAtPosition = true
             end
             
             task.wait(0.01)
             continue
         end
     end
-    
-    isFeatureRunning = false
 end
 
 -- ==================================================
 -- STATE
 -- ==================================================
-_G.YOKUDO_AutoCursedCaptainEnabled = false
-_G.YOKUDO_AutoCursedCaptainLoop = nil
+_G.YOKUDO_AutoDarkBeardEnabled = false
+_G.YOKUDO_DarkBeardLoopConnection = nil
 
 -- ==================================================
--- TOGGLE AUTO CURSED CAPTAIN (មានការពារ)
+-- TOGGLE AUTO DARKBEARD (FIXED - Debounce)
 -- ==================================================
-function _G.YOKUDO_ToggleAutoCursedCaptain()
-    if toggleLock then
-        return
-    end
-    
+function _G.YOKUDO_ToggleAutoDarkBeard()
+    -- Debounce: ការពារការចុចភ្លាមៗ
     if isToggling then
         return
     end
     
     isToggling = true
-    toggleLock = true
     
-    _G.YOKUDO_AutoCursedCaptainEnabled = not _G.YOKUDO_AutoCursedCaptainEnabled
+    -- ផ្លាស់ប្តូរ State
+    _G.YOKUDO_AutoDarkBeardEnabled = not _G.YOKUDO_AutoDarkBeardEnabled
     
-    if _G.YOKUDO_AutoCursedCaptainEnabled then
-        if isFeatureRunning then
-            isToggling = false
-            toggleLock = false
-            return
-        end
-        
-        hasBypassTeleported = false
+    if _G.YOKUDO_AutoDarkBeardEnabled then
+        -- START
+        hasRespawned = false
+        respawnCount = 0
         isBossDead = false
         bossFound = false
         isAtPosition = false
         isFollowingBoss = false
         isTweeningToPosition = false
         
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
+        end
+        
         if followConnection then
             followConnection:Disconnect()
             followConnection = nil
         end
         
-        if _G.YOKUDO_AutoCursedCaptainLoop then
-            _G.YOKUDO_AutoCursedCaptainLoop:Disconnect()
-            _G.YOKUDO_AutoCursedCaptainLoop = nil
+        if _G.YOKUDO_DarkBeardLoopConnection then
+            _G.YOKUDO_DarkBeardLoopConnection:Disconnect()
+            _G.YOKUDO_DarkBeardLoopConnection = nil
         end
         
-        _G.YOKUDO_AutoCursedCaptainLoop = task.spawn(cursedCaptainLoop)
-        print("⚓ Auto Cursed Captain Started")
+        _G.YOKUDO_DarkBeardLoopConnection = task.spawn(darkBeardLoop)
     else
-        if _G.YOKUDO_AutoCursedCaptainLoop then
-            task.cancel(_G.YOKUDO_AutoCursedCaptainLoop)
-            _G.YOKUDO_AutoCursedCaptainLoop = nil
+        -- STOP
+        if _G.YOKUDO_DarkBeardLoopConnection then
+            task.cancel(_G.YOKUDO_DarkBeardLoopConnection)
+            _G.YOKUDO_DarkBeardLoopConnection = nil
+        end
+        
+        if characterAddedConnection then
+            characterAddedConnection:Disconnect()
+            characterAddedConnection = nil
         end
         
         if followConnection then
@@ -491,14 +650,11 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
         bossTarget = nil
         currentBossPos = nil
         isLocked = false
-        isFeatureRunning = false
-        
-        print("⚓ Auto Cursed Captain Stopped")
     end
     
+    -- Release Debounce
     task.wait(0.3)
     isToggling = false
-    toggleLock = false
 end
 
 -- ==================================================
@@ -506,11 +662,8 @@ end
 -- ==================================================
 Player.CharacterAdded:Connect(function()
     task.wait(0.5)
-    resetBypassState()
-    
-    if _G.YOKUDO_AutoCursedCaptainEnabled then
+    if _G.YOKUDO_AutoDarkBeardEnabled then
         stopTweenTeleport()
     end
 end)
 
-print("✅ AutoCursedCaptain Loaded (No Clip on Tween)")
