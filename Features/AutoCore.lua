@@ -1,5 +1,5 @@
 -- ==================================================
--- AUTO CORE (ដូច Auto Cursed Captain)
+-- AUTO CORE (UPDATED - ដូច Auto Cursed Captain)
 -- ==================================================
 
 local Players = game:GetService("Players")
@@ -14,6 +14,11 @@ local Player = Players.LocalPlayer
 -- CORE POSITION
 -- ==================================================
 local CORE_POSITION = Vector3.new(2282, 18, 910)
+
+-- ==================================================
+-- TWEEN SPEED
+-- ==================================================
+local TWEEN_SPEED = 200
 
 -- ==================================================
 -- TOGGLE DEBOUNCE
@@ -64,7 +69,6 @@ local function bypassTeleport(targetPos)
     
     root.CFrame = CFrame.new(targetPos)
     hasBypassTeleported = true
-    print("⚡ Bypass Teleport to Core Position!")
     
     return true
 end
@@ -74,7 +78,6 @@ end
 -- ==================================================
 local function resetBypassState()
     hasBypassTeleported = false
-    
 end
 
 -- ==================================================
@@ -167,7 +170,7 @@ local function tweenToBoss(bossPos, speed)
         return true 
     end
     
-    local duration = math.max(0.5, distance / speed)
+    local duration = math.max(0.10, distance / speed)
     
     local direction = (targetPos - root.Position).Unit
     if not bodyVelocity then
@@ -290,6 +293,9 @@ local function coreLoop()
             _G.YOKUDO_EquipWeaponFromBackpack(weaponType)
         end
         
+        -- ==================================================
+        -- CASE 1: Boss នៅជិត (workspace) → Tween ទៅ Boss
+        -- ==================================================
         if location == "workspace" then
             if isTweeningToPosition then
                 stopTweenToPosition()
@@ -311,7 +317,7 @@ local function coreLoop()
             local dist = (bossPos - root.Position).Magnitude
             
             if dist > 60 then
-                tweenToBoss(bossPos, 250)
+                tweenToBoss(bossPos, TWEEN_SPEED)
                 
                 if followConnection then
                     followConnection:Disconnect()
@@ -367,6 +373,9 @@ local function coreLoop()
             continue
         end
         
+        -- ==================================================
+        -- CASE 2: Boss នៅឆ្ងាយ (ReplicatedStorage) → Bypass Teleport ភ្លាមៗ
+        -- ==================================================
         if location == "replicatedstorage" then
             bossFound = false
             isAtPosition = false
@@ -395,7 +404,6 @@ _G.YOKUDO_AutoCoreLoop = nil
 -- ==================================================
 function _G.YOKUDO_ToggleAutoCore()
     if toggleLock then
-        print("⏳ Please wait, toggling in progress...")
         return
     end
     
@@ -410,7 +418,6 @@ function _G.YOKUDO_ToggleAutoCore()
     
     if _G.YOKUDO_AutoCoreEnabled then
         if isFeatureRunning then
-           
             isToggling = false
             toggleLock = false
             return
@@ -434,7 +441,6 @@ function _G.YOKUDO_ToggleAutoCore()
         end
         
         _G.YOKUDO_AutoCoreLoop = task.spawn(coreLoop)
-        
     else
         if _G.YOKUDO_AutoCoreLoop then
             task.cancel(_G.YOKUDO_AutoCoreLoop)
@@ -457,8 +463,6 @@ function _G.YOKUDO_ToggleAutoCore()
         currentBossPos = nil
         isLocked = false
         isFeatureRunning = false
-        
-       
     end
     
     task.wait(0.3)
@@ -478,4 +482,4 @@ Player.CharacterAdded:Connect(function()
     end
 end)
 
-
+print("✅ AutoCore Loaded")
