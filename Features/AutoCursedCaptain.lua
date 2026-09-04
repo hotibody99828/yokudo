@@ -167,7 +167,7 @@ local function tweenToBoss(bossPos, speed)
         return true 
     end
     
-    local duration = math.max(0.5, distance / speed)
+    local duration = math.max(0.10, distance / speed)
     
     local direction = (targetPos - root.Position).Unit
     if not bodyVelocity then
@@ -489,5 +489,3 @@ Player.CharacterAdded:Connect(function()
         stopTweenTeleport()
     end
 end)
-
-
