@@ -160,27 +160,28 @@ coreCheckbox.MouseButton1Click:Connect(function()
 end)
 
 -- ==================================================
--- SETTING TAB
+-- SETTING TAB (UPDATED - គ្មាន Tween Speed)
 -- ==================================================
+
+-- Tween Settings (មានតែ Stop Tween Button)
 CreateSectionTitle(SettingPage, "Tween Settings", 1)
-CreateTweenSpeed(SettingPage, 2)
-CreateStopTweenButton(SettingPage, 3)
+CreateStopTweenButton(SettingPage, 2)
 
-CreateSectionTitle(SettingPage, "Other", 4)
-local noClipFrame, noClipCheckbox, getNoClipState = CreateCheckbox(SettingPage, "No Clip", 5)
+CreateSectionTitle(SettingPage, "Other", 3)
+local noClipFrame, noClipCheckbox, getNoClipState = CreateCheckbox(SettingPage, "No Clip", 4)
 
-CreateSectionTitle(SettingPage, "Auto Abilities", 6)
-local busoFrame, busoCheckbox, getBusoState = CreateCheckbox(SettingPage, "Auto Buso", 7)
-local obsFrame, obsCheckbox, getObsState = CreateCheckbox(SettingPage, "Auto Ken", 8)
+CreateSectionTitle(SettingPage, "Auto Abilities", 5)
+local busoFrame, busoCheckbox, getBusoState = CreateCheckbox(SettingPage, "Auto Buso", 6)
+local obsFrame, obsCheckbox, getObsState = CreateCheckbox(SettingPage, "Auto Ken", 7)
 
-CreateSectionTitle(SettingPage, "Auto Race", 9)
-local tFrame, tCheckbox, getTState = CreateCheckbox(SettingPage, "Auto Race V3", 10)
-local awakeFrame, awakeCheckbox, getAwakeState = CreateCheckbox(SettingPage, "Auto Race V4", 11)
+CreateSectionTitle(SettingPage, "Auto Race", 8)
+local tFrame, tCheckbox, getTState = CreateCheckbox(SettingPage, "Auto Race V3", 9)
+local awakeFrame, awakeCheckbox, getAwakeState = CreateCheckbox(SettingPage, "Auto Race V4", 10)
 
-CreateSectionTitle(SettingPage, "Movement Hacks", 12)
-local jumpHolder, jumpCheckbox, getJumpState, jumpTextBox, getJumpValue = CreateTextBoxWithCheckbox(SettingPage, "Jump Hack", 13)
-local speedHolder, speedCheckbox, getSpeedState, speedTextBox, getSpeedValue = CreateTextBoxWithCheckbox(SettingPage, "Speed Hack", 14)
-local walkFrame, walkCheckbox, getWalkState = CreateCheckbox(SettingPage, "Walk on Water", 15)
+CreateSectionTitle(SettingPage, "Movement Hacks", 11)
+local jumpHolder, jumpCheckbox, getJumpState, jumpTextBox, getJumpValue = CreateTextBoxWithCheckbox(SettingPage, "Jump Hack", 12)
+local speedHolder, speedCheckbox, getSpeedState, speedTextBox, getSpeedValue = CreateTextBoxWithCheckbox(SettingPage, "Speed Hack", 13)
+local walkFrame, walkCheckbox, getWalkState = CreateCheckbox(SettingPage, "Walk on Water", 14)
 
 -- ==================================================
 -- SETTING CHECKBOX EVENTS
