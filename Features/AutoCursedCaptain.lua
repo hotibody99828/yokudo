@@ -1,5 +1,5 @@
 -- ==================================================
--- AUTO CURSED CAPTAIN (មានការពារធិក)
+-- AUTO CURSED CAPTAIN (មាន No Clip ពេល Tween)
 -- ==================================================
 
 local Players = game:GetService("Players")
@@ -50,6 +50,31 @@ local isAtPosition = false
 local isFollowingBoss = false
 
 -- ==================================================
+-- NO CLIP FUNCTIONS
+-- ==================================================
+local function enableNoClip()
+    local character = Player.Character
+    if character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end
+
+local function disableNoClip()
+    local character = Player.Character
+    if character then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- ==================================================
 -- BYPASS TELEPORT FUNCTION
 -- ==================================================
 local function bypassTeleport(targetPos)
@@ -62,9 +87,15 @@ local function bypassTeleport(targetPos)
     local humanoid = character:FindFirstChild("Humanoid")
     if humanoid and humanoid.Health <= 0 then return false end
     
+    -- Enable No Clip before teleport
+    enableNoClip()
+    
     root.CFrame = CFrame.new(targetPos)
     hasBypassTeleported = true
     
+    -- Disable No Clip after teleport
+    task.wait(0.1)
+    disableNoClip()
     
     return true
 end
@@ -74,7 +105,6 @@ end
 -- ==================================================
 local function resetBypassState()
     hasBypassTeleported = false
-    
 end
 
 -- ==================================================
@@ -184,6 +214,9 @@ local function tweenToBoss(bossPos, speed)
     end
     bodyGyro.CFrame = CFrame.lookAt(root.Position, targetPos)
     
+    -- Enable No Clip before tween
+    enableNoClip()
+    
     local tweenInfo = TweenInfo.new(
         duration,
         Enum.EasingStyle.Linear,
@@ -202,6 +235,10 @@ local function tweenToBoss(bossPos, speed)
     if bodyVelocity then
         bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     end
+    
+    -- Disable No Clip after tween complete
+    task.wait(0.1)
+    disableNoClip()
     
     if not isTweening then
         return false
@@ -239,7 +276,6 @@ end
 -- AUTO CURSED CAPTAIN LOOP
 -- ==================================================
 local function cursedCaptainLoop()
-    -- សម្គាល់ថា Feature កំពុងដំណើរការ
     isFeatureRunning = true
     
     while _G.YOKUDO_AutoCursedCaptainEnabled do
@@ -382,7 +418,6 @@ local function cursedCaptainLoop()
         end
     end
     
-    -- ពេល Loop ចប់ (បិទ Feature)
     isFeatureRunning = false
 end
 
@@ -396,13 +431,10 @@ _G.YOKUDO_AutoCursedCaptainLoop = nil
 -- TOGGLE AUTO CURSED CAPTAIN (មានការពារ)
 -- ==================================================
 function _G.YOKUDO_ToggleAutoCursedCaptain()
-    -- ការពារការចុចភ្លាមៗ
     if toggleLock then
-        
         return
     end
     
-    -- Debounce
     if isToggling then
         return
     end
@@ -410,16 +442,10 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
     isToggling = true
     toggleLock = true
     
-    -- ផ្លាស់ប្តូរ State
     _G.YOKUDO_AutoCursedCaptainEnabled = not _G.YOKUDO_AutoCursedCaptainEnabled
     
     if _G.YOKUDO_AutoCursedCaptainEnabled then
-        -- ==================================================
-        -- START
-        -- ==================================================
-        -- ពិនិត្យថា Feature កំពុងដំណើរការឬអត់
         if isFeatureRunning then
-            
             isToggling = false
             toggleLock = false
             return
@@ -445,9 +471,6 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
         _G.YOKUDO_AutoCursedCaptainLoop = task.spawn(cursedCaptainLoop)
         print("⚓ Auto Cursed Captain Started")
     else
-        -- ==================================================
-        -- STOP
-        -- ==================================================
         if _G.YOKUDO_AutoCursedCaptainLoop then
             task.cancel(_G.YOKUDO_AutoCursedCaptainLoop)
             _G.YOKUDO_AutoCursedCaptainLoop = nil
@@ -470,9 +493,9 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
         isLocked = false
         isFeatureRunning = false
         
+        print("⚓ Auto Cursed Captain Stopped")
     end
     
-    -- Release locks
     task.wait(0.3)
     isToggling = false
     toggleLock = false
@@ -490,4 +513,4 @@ Player.CharacterAdded:Connect(function()
     end
 end)
 
-
+print("✅ AutoCursedCaptain Loaded (No Clip on Tween)")
