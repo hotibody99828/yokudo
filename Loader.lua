@@ -136,8 +136,6 @@ task.spawn(function()
         "WalkOnWater",
         "AutoBuso",
         "AutoKen",
-        "AutoRaceV3",
-        "AutoRaceV4",
         "CharacterHandler",
         "WeaponWatcher"
     }
