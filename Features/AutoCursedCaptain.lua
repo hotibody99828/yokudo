@@ -18,7 +18,7 @@ local CURSED_CAPTAIN_POSITION = Vector3.new(-6499, 90, -124)
 -- ==================================================
 -- TWEEN SPEED
 -- ==================================================
-local TWEEN_SPEED = 200
+local TWEEN_SPEED = 230
 
 -- ==================================================
 -- TOGGLE DEBOUNCE
