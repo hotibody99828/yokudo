@@ -1,5 +1,5 @@
 -- ==================================================
--- AUTO CURSED CAPTAIN (មានការពារធិក)
+-- AUTO CURSED CAPTAIN (Bypass & Stop ភ្លាមៗ)
 -- ==================================================
 
 local Players = game:GetService("Players")
@@ -50,7 +50,7 @@ local isAtPosition = false
 local isFollowingBoss = false
 
 -- ==================================================
--- BYPASS TELEPORT FUNCTION
+-- BYPASS TELEPORT FUNCTION (Bypass ភ្លាមៗ)
 -- ==================================================
 local function bypassTeleport(targetPos)
     local character = Player.Character
@@ -62,9 +62,9 @@ local function bypassTeleport(targetPos)
     local humanoid = character:FindFirstChild("Humanoid")
     if humanoid and humanoid.Health <= 0 then return false end
     
+    -- Bypass Teleport ភ្លាមៗ
     root.CFrame = CFrame.new(targetPos)
     hasBypassTeleported = true
-    
     
     return true
 end
@@ -74,7 +74,6 @@ end
 -- ==================================================
 local function resetBypassState()
     hasBypassTeleported = false
-    
 end
 
 -- ==================================================
@@ -239,7 +238,6 @@ end
 -- AUTO CURSED CAPTAIN LOOP
 -- ==================================================
 local function cursedCaptainLoop()
-    -- សម្គាល់ថា Feature កំពុងដំណើរការ
     isFeatureRunning = true
     
     while _G.YOKUDO_AutoCursedCaptainEnabled do
@@ -291,6 +289,9 @@ local function cursedCaptainLoop()
             _G.YOKUDO_EquipWeaponFromBackpack(weaponType)
         end
         
+        -- ==================================================
+        -- CASE 1: Boss នៅជិត (workspace) → Tween ទៅ Boss
+        -- ==================================================
         if location == "workspace" then
             if isTweeningToPosition then
                 stopTweenToPosition()
@@ -368,13 +369,18 @@ local function cursedCaptainLoop()
             continue
         end
         
+        -- ==================================================
+        -- CASE 2: Boss នៅឆ្ងាយ (ReplicatedStorage) → Bypass Teleport ភ្លាមៗ
+        -- ==================================================
         if location == "replicatedstorage" then
             bossFound = false
             isAtPosition = false
             isFollowingBoss = false
             
+            -- Bypass Teleport តែម្តង (បើមិនទាន់បាន Teleport)
             if not hasBypassTeleported then
                 bypassTeleport(CURSED_CAPTAIN_POSITION)
+                -- Bypass រួច → Stop Bypass ភ្លាមៗ (មិនចាំអ្វីទាំងអស់)
             end
             
             task.wait(0.01)
@@ -382,7 +388,6 @@ local function cursedCaptainLoop()
         end
     end
     
-    -- ពេល Loop ចប់ (បិទ Feature)
     isFeatureRunning = false
 end
 
@@ -393,16 +398,13 @@ _G.YOKUDO_AutoCursedCaptainEnabled = false
 _G.YOKUDO_AutoCursedCaptainLoop = nil
 
 -- ==================================================
--- TOGGLE AUTO CURSED CAPTAIN (មានការពារ)
+-- TOGGLE AUTO CURSED CAPTAIN
 -- ==================================================
 function _G.YOKUDO_ToggleAutoCursedCaptain()
-    -- ការពារការចុចភ្លាមៗ
     if toggleLock then
-        
         return
     end
     
-    -- Debounce
     if isToggling then
         return
     end
@@ -410,16 +412,11 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
     isToggling = true
     toggleLock = true
     
-    -- ផ្លាស់ប្តូរ State
     _G.YOKUDO_AutoCursedCaptainEnabled = not _G.YOKUDO_AutoCursedCaptainEnabled
     
     if _G.YOKUDO_AutoCursedCaptainEnabled then
-        -- ==================================================
         -- START
-        -- ==================================================
-        -- ពិនិត្យថា Feature កំពុងដំណើរការឬអត់
         if isFeatureRunning then
-            
             isToggling = false
             toggleLock = false
             return
@@ -443,11 +440,8 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
         end
         
         _G.YOKUDO_AutoCursedCaptainLoop = task.spawn(cursedCaptainLoop)
-        print("⚓ Auto Cursed Captain Started")
     else
-        -- ==================================================
         -- STOP
-        -- ==================================================
         if _G.YOKUDO_AutoCursedCaptainLoop then
             task.cancel(_G.YOKUDO_AutoCursedCaptainLoop)
             _G.YOKUDO_AutoCursedCaptainLoop = nil
@@ -469,10 +463,8 @@ function _G.YOKUDO_ToggleAutoCursedCaptain()
         currentBossPos = nil
         isLocked = false
         isFeatureRunning = false
-        
     end
     
-    -- Release locks
     task.wait(0.3)
     isToggling = false
     toggleLock = false
@@ -489,3 +481,5 @@ Player.CharacterAdded:Connect(function()
         stopTweenTeleport()
     end
 end)
+
+print("✅ AutoCursedCaptain Loaded")
