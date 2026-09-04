@@ -1,5 +1,5 @@
 -- ==================================================
--- AUTO DARKBEARD (FIXED - Toggle Debounce)
+-- AUTO DARKBEARD (Tween Speed 200)
 -- ==================================================
 
 local Players = game:GetService("Players")
@@ -14,6 +14,11 @@ local Player = Players.LocalPlayer
 -- DARKBEARD POSITION
 -- ==================================================
 local DARKBEARD_POSITION = Vector3.new(4267, 35, -3849)
+
+-- ==================================================
+-- TWEEN SPEED
+-- ==================================================
+local TWEEN_SPEED = 200
 
 -- ==================================================
 -- RESPAWN STATE
@@ -136,7 +141,7 @@ local function tweenToPosition(targetPos, speed)
         return true 
     end
     
-    local duration = math.max(0.5, distance / speed)
+    local duration = math.max(0.10, distance / speed)
     
     local direction = (targetPos - root.Position).Unit
     if not bodyVelocity then
@@ -217,7 +222,7 @@ local function tweenToBoss(bossPos, speed)
         return true 
     end
     
-    local duration = math.max(0.5, distance / speed)
+    local duration = math.max(0.10, distance / speed)
     
     local direction = (targetPos - root.Position).Unit
     if not bodyVelocity then
@@ -501,7 +506,7 @@ local function darkBeardLoop()
             local dist = (bossPos - root.Position).Magnitude
             
             if dist > 60 then
-                tweenToBoss(bossPos, 250)
+                tweenToBoss(bossPos, TWEEN_SPEED)
                 
                 if followConnection then
                     followConnection:Disconnect()
@@ -565,7 +570,7 @@ local function darkBeardLoop()
             local distToPos = (DARKBEARD_POSITION - root.Position).Magnitude
             
             if distToPos > 5 and not isTweeningToPosition then
-                tweenToPosition(DARKBEARD_POSITION, 250)
+                tweenToPosition(DARKBEARD_POSITION, TWEEN_SPEED)
                 task.wait(0.01)
             else
                 isAtPosition = true
@@ -584,21 +589,18 @@ _G.YOKUDO_AutoDarkBeardEnabled = false
 _G.YOKUDO_DarkBeardLoopConnection = nil
 
 -- ==================================================
--- TOGGLE AUTO DARKBEARD (FIXED - Debounce)
+-- TOGGLE AUTO DARKBEARD
 -- ==================================================
 function _G.YOKUDO_ToggleAutoDarkBeard()
-    -- Debounce: ការពារការចុចភ្លាមៗ
     if isToggling then
         return
     end
     
     isToggling = true
     
-    -- ផ្លាស់ប្តូរ State
     _G.YOKUDO_AutoDarkBeardEnabled = not _G.YOKUDO_AutoDarkBeardEnabled
     
     if _G.YOKUDO_AutoDarkBeardEnabled then
-        -- START
         hasRespawned = false
         respawnCount = 0
         isBossDead = false
@@ -624,7 +626,6 @@ function _G.YOKUDO_ToggleAutoDarkBeard()
         
         _G.YOKUDO_DarkBeardLoopConnection = task.spawn(darkBeardLoop)
     else
-        -- STOP
         if _G.YOKUDO_DarkBeardLoopConnection then
             task.cancel(_G.YOKUDO_DarkBeardLoopConnection)
             _G.YOKUDO_DarkBeardLoopConnection = nil
@@ -652,7 +653,6 @@ function _G.YOKUDO_ToggleAutoDarkBeard()
         isLocked = false
     end
     
-    -- Release Debounce
     task.wait(0.3)
     isToggling = false
 end
@@ -667,4 +667,4 @@ Player.CharacterAdded:Connect(function()
     end
 end)
 
-
+print("✅ AutoDarkBeard Loaded (Tween Speed: 200)")
