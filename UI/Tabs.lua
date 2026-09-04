@@ -160,7 +160,7 @@ coreCheckbox.MouseButton1Click:Connect(function()
 end)
 
 -- ==================================================
--- SETTING TAB (UPDATED - គ្មាន Tween Speed)
+-- SETTING TAB (UPDATED - គ្មាន Tween Speed & Auto Race)
 -- ==================================================
 
 -- Tween Settings (មានតែ Stop Tween Button)
@@ -174,14 +174,10 @@ CreateSectionTitle(SettingPage, "Auto Abilities", 5)
 local busoFrame, busoCheckbox, getBusoState = CreateCheckbox(SettingPage, "Auto Buso", 6)
 local obsFrame, obsCheckbox, getObsState = CreateCheckbox(SettingPage, "Auto Ken", 7)
 
-CreateSectionTitle(SettingPage, "Auto Race", 8)
-local tFrame, tCheckbox, getTState = CreateCheckbox(SettingPage, "Auto Race V3", 9)
-local awakeFrame, awakeCheckbox, getAwakeState = CreateCheckbox(SettingPage, "Auto Race V4", 10)
-
-CreateSectionTitle(SettingPage, "Movement Hacks", 11)
-local jumpHolder, jumpCheckbox, getJumpState, jumpTextBox, getJumpValue = CreateTextBoxWithCheckbox(SettingPage, "Jump Hack", 12)
-local speedHolder, speedCheckbox, getSpeedState, speedTextBox, getSpeedValue = CreateTextBoxWithCheckbox(SettingPage, "Speed Hack", 13)
-local walkFrame, walkCheckbox, getWalkState = CreateCheckbox(SettingPage, "Walk on Water", 14)
+CreateSectionTitle(SettingPage, "Movement Hacks", 8)
+local jumpHolder, jumpCheckbox, getJumpState, jumpTextBox, getJumpValue = CreateTextBoxWithCheckbox(SettingPage, "Jump Hack", 9)
+local speedHolder, speedCheckbox, getSpeedState, speedTextBox, getSpeedValue = CreateTextBoxWithCheckbox(SettingPage, "Speed Hack", 10)
+local walkFrame, walkCheckbox, getWalkState = CreateCheckbox(SettingPage, "Walk on Water", 11)
 
 -- ==================================================
 -- SETTING CHECKBOX EVENTS
@@ -195,18 +191,6 @@ end)
 obsCheckbox.MouseButton1Click:Connect(function()
     if _G.YOKUDO_ToggleAutoKen then
         _G.YOKUDO_ToggleAutoKen()
-    end
-end)
-
-tCheckbox.MouseButton1Click:Connect(function()
-    if _G.YOKUDO_ToggleAutoRaceV3 then
-        _G.YOKUDO_ToggleAutoRaceV3()
-    end
-end)
-
-awakeCheckbox.MouseButton1Click:Connect(function()
-    if _G.YOKUDO_ToggleAutoRaceV4 then
-        _G.YOKUDO_ToggleAutoRaceV4()
     end
 end)
 
